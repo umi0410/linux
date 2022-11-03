@@ -543,6 +543,7 @@ int show_interrupts(struct seq_file *p, void *v)
 	}
 
 	seq_putc(p, '\n');
+    seq_printf(p, "Hello, world! An easter egg from Jinsu. :)\n");
 	raw_spin_unlock_irqrestore(&desc->lock, flags);
 outsparse:
 	rcu_read_unlock();
