@@ -1484,6 +1484,14 @@ static irqreturn_t bcm2835_sdhost_irq(int irq, void *dev_id)
 	struct bcm2835_host *host = dev_id;
 	u32 intmask;
 
+    void *stack;
+	struct thread_info *current_thread;
+
+	stack = current->stack;
+	current_thread = (struct thread_info*)stack;
+
+	printk("[+] in_interrupt: 0x%08x,preempt_count = 0x%08x, stack=0x%08lx \n",
+				(unsigned int)in_interrupt(), (unsigned int)current_thread->preempt_count, (long unsigned int)stack);
 	spin_lock(&host->lock);
 
 	intmask = bcm2835_sdhost_read(host, SDHSTS);
