@@ -134,6 +134,8 @@ void __irq_wake_thread(struct irq_desc *desc, struct irqaction *action)
 	wake_up_process(action->thread);
 }
 
+extern uint32_t raspbian_debug_state;
+
 irqreturn_t __handle_irq_event_percpu(struct irq_desc *desc, unsigned int *flags)
 {
 	irqreturn_t retval = IRQ_NONE;
@@ -144,6 +146,12 @@ irqreturn_t __handle_irq_event_percpu(struct irq_desc *desc, unsigned int *flags
 
 	for_each_action_of_desc(desc, action) {
 		irqreturn_t res;
+
+        if ( 825 == raspbian_debug_state ) {
+            void *irq_handler = (void*)action -> handler;
+            trace_printk("[+] irq_num: [%d] handler: %pS caller:(%pS) \n",
+                    irq, irq_handler, (void *)__builtin_return_address(0));
+        }
 
 		trace_irq_handler_entry(irq, action);
 		res = action->handler(irq, action->dev_id);
