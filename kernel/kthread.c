@@ -291,12 +291,30 @@ struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
 	struct kthread_create_info *create = kmalloc(sizeof(*create),
 						     GFP_KERNEL);
 
+    // thread 이름이 irq.*으로 시작하는 것은 irq thread 이다.
+    int irq_thread_enable = !strncmp(namefmt, "irq", 3);
+	char *process_name = &namefmt[0];
+
 	if (!create)
 		return ERR_PTR(-ENOMEM);
 	create->threadfn = threadfn;
 	create->data = data;
 	create->node = node;
 	create->done = &done;
+
+    // thread 이름과 caller을 확인해보기 위한 debugging 코드
+	if ( process_name ) {
+		printk("[+] process_name: %s caller:(%pS) \n", process_name, (void *)__builtin_return_address(0));
+    }
+    // irq thread라면 irq thread handler 함수인 irq_thread()와 그 caller을 출력한다.
+    // dump_stack()을 통해 call stack도 확인할 수 있다.
+    // XXX: 아마도, irq thread들은 결국 irq_thread()를 수행할 뿐인 걸까..?
+	if (irq_thread_enable) {
+		void *irq_threadfn = (void*)threadfn;
+
+		printk("[+] irq_thread handler: %pS caller:(%pS) \n", irq_threadfn, (void *)__builtin_return_address(0));
+		dump_stack();
+	}
 
 	spin_lock(&kthread_create_lock);
 	list_add_tail(&create->list, &kthread_create_list);
